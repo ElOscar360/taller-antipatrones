@@ -1,0 +1,68 @@
+
+======================================================================
+CASO 1 - God Object
+======================================================================
+--- HEREDADA (Ramiro lo hace todo) ---
+[Ramiro] Cobrando $160.0 a Ana Torres
+[Ramiro] Guardando expediente de Ana Torres
+[Ramiro] Correo para Ana Torres: su visa va en camino
+Resultado: trámite aprobado
+--- RESCATADA (una clase por responsabilidad) ---
+[CobradorDeTarifa] Cobrando $160.00 a Ana Torres
+[RepositorioDeExpedientes] Guardando expediente de Ana Torres
+[NotificadorDeCorreo] Correo para Ana Torres: su visa va en camino
+Resultado: trámite aprobado
+
+======================================================================
+CASO 2 - Copy-Paste Programming (base 50 -> 60)
+======================================================================
+Clonada : lugares editados = 3
+Strategy: lugares editados = 1
+Visa        Clonada    Strategy   Igual 
+TURISTA     190.00     190.00     true  
+ESTUDIANTE  95.00      95.00      true  
+TRABAJO     285.00     285.00     true  
+
+======================================================================
+CASO 3 - Magic Numbers
+======================================================================
+Heredada  evaluar(2, 20)          -> APROBADA
+Rescatada evaluar(ESTUDIANTE, 20) -> APROBADA
+Heredada  evaluar(9, 20)          -> RECHAZADA  (sin explicación)
+Rescatada evaluar(9, 20)          -> RECHAZADA: Tipo de visa desconocido: 9. Tipos validos: 1=TURISTA, 2=ESTUDIANTE, 3=TRABAJO
+
+======================================================================
+CASO 4 - Acoplamiento fuerte
+======================================================================
+--- HEREDADA ---
+  [Correo] Aviso de cancelación enviado
+  [Citas] Cupo liberado en la agenda
+Estado: CANCELADA | ¿Reembolso procesado? false  <-- ¡SE PERDIÓ EL REEMBOLSO!
+--- RESCATADA (Observer) ---
+  [CorreoObservador] Aviso de cancelación enviado a Ana Torres
+  [CitasObservador] Cupo de Ana Torres liberado en la agenda
+  [PagosObservador] Reembolso procesado para Ana Torres
+Estado: CANCELADA | ¿Reembolso procesado? true
+
+======================================================================
+CASO 5 - Integración (versión nueva)
+======================================================================
+1) Solicitar
+  Solicitud de Ana Torres tipo TRABAJO
+2) Evaluar
+  APROBADA: Visa TRABAJO aprobada
+3) Cobrar
+[CobradorDeTarifa] Cobrando $240.00 a Ana Torres
+4) Cancelar
+  [CorreoObservador] Aviso de cancelación enviado a Ana Torres
+  [CitasObservador] Cupo de Ana Torres liberado en la agenda
+  [PagosObservador] Reembolso procesado para Ana Torres
+  Estado final: CANCELADA
+
+TABLA FINAL - ANTIPATRONES CAPTURADOS
+Antipatrón           | Síntoma                                            | Solución
+-----------------------------------------------------------------------------------------------------------------------------
+God Object           | OficinaDeTodo valida, cobra, guarda y envía correo | Responsabilidad única: 4 clases + orquestador
+Copy-Paste           | Fórmula de precio clonada 3 veces (3 ediciones)    | Strategy + TarifaBase (1 edición)
+Magic Numbers        | tipo == 3, edad > 17, 0.5 sin nombre               | Enum TipoVisa + constantes + mensajes
+Acoplamiento fuerte  | Solicitud crea servicios y olvidó pagos            | Observer: Solicitud notifica sin conocerlos
